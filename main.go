@@ -391,7 +391,7 @@ func findPokemon(id string, byId bool) (PokeData, error) {
 
 func getEvolutionStage(pokemon structs.Pokemon, evolutionChain structs.EvolutionChain) (int, error) {
 	chain := evolutionChain.Chain
-	name := strings.Split(pokemon.Name, "-")[0]
+	name := pokemon.Species.Name
 	if chain.Species.Name == name {
 		return 1, nil
 	}
@@ -400,16 +400,18 @@ func getEvolutionStage(pokemon structs.Pokemon, evolutionChain structs.Evolution
 		return 0, errors.New("can't find evolution stage")
 	}
 
-	if chain.EvolvesTo[0].Species.Name == name {
-		return 2, nil
-	}
+	for _, evolve := range chain.EvolvesTo {
+		if evolve.Species.Name == name {
+			return 2, nil
+		}
 
-	if len(chain.EvolvesTo[0].EvolvesTo) == 0 {
-		return 0, errors.New("can't find evolution stage")
-	}
-
-	if chain.EvolvesTo[0].EvolvesTo[0].Species.Name == name {
-		return 3, nil
+		if len(evolve.EvolvesTo) > 0 {
+			for _, evolveStage3 := range evolve.EvolvesTo {
+				if evolveStage3.Species.Name == name {
+					return 3, nil
+				}
+			}
+		}
 	}
 
 	return 0, errors.New("can't find evolution stage")
